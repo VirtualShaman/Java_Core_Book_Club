@@ -69,5 +69,67 @@ public class HomeController {
     	return "redirect:/";
     }
     
+    @RequestMapping("/dashboard")
+    public String dashboard(Model model, HttpSession session) {
+    	model.addAttribute("allBooks", bookService.allBooks());
+    	model.addAttribute("user", userServ.oneUser((Long)
+    			session.getAttribute("user_id")));
+    	return "dashboard.jsp";
+    }
+    
+    @RequestMapping("/oneBook/{id}")
+    public String oneCouse(@PathVariable("id") Long id,
+    		Model model, HttpSession session) {
+    	User user = userServ.oneUser((Long)session.getAttribute("user_id"));
+    	model.addAttribute("user", user);
+    	model.addAttribute("book", bookService.oneBook(id));
+    	return "oneBook.jsp";
+    }
+    
+    @RequestMapping("/newBook")
+    public String newBook(@ModelAttribute("book") Book book, 
+    		Model model, HttpSession session) {
+    	Long user_id = (Long)session.getAttribute("user_id");
+    	model.addAttribute("user", user_id);
+    	return "newBook.jsp";
+    }
+    @RequestMapping(value = "/makeBook", method= RequestMethod.POST)
+    public String createAction(@Valid @ModelAttribute("book") Book book,
+    		BindingResult result, Model model) {
+    	if(result.hasErrors()) {
+    		return "newBook.jsp";
+    	} else {
+    		bookService.createBook(book);
+    		return "redirect:/dashboard";
+    	}
+    }
+    
+    @RequestMapping("/editBook/{id}")
+    public String editBook(@PathVariable("id") Long id,
+    		@ModelAttribute("book") Book book, Model model,
+    		HttpSession session) {
+    	Book oneBook = bookService.oneBook(id);
+    	model.addAttribute("book", oneBook);
+    	Long user_id = (Long)session.getAttribute("user_id");
+    	model.addAttribute("user", user_id);
+    	return "editBook.jsp";
+    }
+    @RequestMapping(value="/editAction/{id}", method=RequestMethod.PUT)
+    public String editAction(@Valid @ModelAttribute("book") Book book,
+    		BindingResult result, Model model) {
+    	if(result.hasErrors()) {
+    		return "editBook.jsp";
+    	} else {
+    		bookService.updateBook(book);
+    		return "redirect:/dashboard";
+    	}
+    }
+    
+    @RequestMapping("/delete/{id}")
+    public String delete(@PathVariable("id") Long id) {
+    	bookService.delete(id);
+    	return "redirect:/dashboard";
+    }
+    
     
 }
